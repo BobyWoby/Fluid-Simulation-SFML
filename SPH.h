@@ -11,6 +11,7 @@
 class SPH {
 public:
     SPH(Particle* particles, int numParticles, float kernelRadius, float restDensity, float viscosity);
+
 private:
     Particle* particles;
     int numParticles;
