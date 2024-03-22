@@ -5,7 +5,8 @@
 #include <iostream>
 #include "Particle.h"
 
-Particle::Particle(float r, float x, float y, float m, sf::Vector2f v, sf::Color c) {
+Particle::Particle(int id, float r, float x, float y, float m, sf::Vector2f v, sf::Color c) {
+    this->id = id;
     color = c;
     texture.setOrigin(r,r);
     texture.setRadius(r);
@@ -24,7 +25,7 @@ void Particle::wallCollision(int width, int height) {
         else{
             texture.setPosition((float)width - texture.getRadius(), texture.getPosition().y);
         }
-        velocity.x *= -.9;
+        velocity.x *= -.8;
     }
     if((texture.getPosition().y) < 0 || texture.getPosition().y > (float)height - texture.getRadius()) {
         if(texture.getPosition().y < 0){
@@ -34,7 +35,7 @@ void Particle::wallCollision(int width, int height) {
             texture.setPosition(texture.getPosition().x, (float)height - texture.getRadius());
         }
 
-        velocity.y *= -.9;
+        velocity.y *= -.8;
     }
 }
 

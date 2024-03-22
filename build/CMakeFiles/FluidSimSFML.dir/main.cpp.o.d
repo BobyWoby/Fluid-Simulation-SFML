@@ -263,6 +263,7 @@ CMakeFiles/FluidSimSFML.dir/main.cpp.o: \
  /usr/include/c++/11/tr1/riemann_zeta.tcc \
  /mnt/c/Users/bestd/CLionProjects/FluidSimSFML/Particle.h \
  /mnt/c/Users/bestd/CLionProjects/FluidSimSFML/Force.h \
+ /mnt/c/Users/bestd/CLionProjects/FluidSimSFML/SPH.h \
  /usr/include/c++/11/random /usr/include/c++/11/bits/random.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/opt_random.h \
  /usr/include/c++/11/bits/random.tcc /usr/include/c++/11/numeric \
