@@ -25,7 +25,7 @@ void Particle::wallCollision(int width, int height) {
         else{
             texture.setPosition((float)width - texture.getRadius(), texture.getPosition().y);
         }
-        velocity.x *= -.8;
+        velocity.x *= -.9;
     }
     if((texture.getPosition().y) < 0 || texture.getPosition().y > (float)height - texture.getRadius()) {
         if(texture.getPosition().y < 0){
@@ -35,10 +35,12 @@ void Particle::wallCollision(int width, int height) {
             texture.setPosition(texture.getPosition().x, (float)height - texture.getRadius());
         }
 
-        velocity.y *= -.8;
+        velocity.y *= -.9;
     }
 }
-
+void Particle::setPosition(float x, float y) {
+    texture.setPosition(x, y);
+}
 Particle::Particle() {
 
 }

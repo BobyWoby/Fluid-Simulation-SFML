@@ -16,10 +16,11 @@ SPH::SPH(int numParticles, float kernelRadius, float restDensity, float gasConst
 }
 
 float SPH::Poly6SmoothingKernel(float r, float h) {
-    float volume = 4 / (M_PI * pow(h, 8));
-//            M_PI * pow(h, 8) / 4;
-    volume = 315 / (64 * M_PI * pow(h, 9));
-    return std::max(0.0,  pow((pow(h, 2) - pow(r, 2)), 3)) * volume;
+    if(r > h){
+        return 0;
+    }
+    float volume = (float)((M_PI) * 0.000119999999984 * (float)(pow(h, 8))) / 4;
+    return std::max(0.0,  pow((pow(h, 2) - pow(r, 2)), 3)) / volume;
 }
 
 //grad((315 (s^2 - x^2)^3)/(64 π s^9)) = (-(945 x (s^2 - x^2)^2)/(32 * M_PI * s^9), 0)
@@ -27,8 +28,8 @@ float SPH::Poly6SmoothingKernelGradient(float r, float h) {
     if(r > h){
         return 0;
     }
-    float f = std::pow(h, 2) - pow(r, 2);
-    float scale = -(float)945 * r * pow(f, 2) / (32 * M_PI * pow(h, 9));
+    float f = (float)std::pow(h, 2) - (float)pow(r, 2);
+    float scale = -945 * r * (float)pow(f, 2) / (32 * (float)M_PI * (float)pow(h, 9));
     return scale * r * f * f;
 }
 //Spiky Kernel: std::max(0.0, 15/(pi * h^6) * pow(h - r, 3));
@@ -36,9 +37,31 @@ float SPH::SpikyKernelGradient(float r, float h) {
     if(r > h){
         return 0;
     }
-    return -45 * pow(h - r, 2) / (M_PI * pow(h, 6)) ;
+    return -(66666.7f * (h-r) /(float)(pow(h, 4)) / (float)(1.0f));
+}
+float SPH::SpikyKernel(float r, float h){
+    if(r > h){
+        return 0;
+    }
+    float volume = .00003 * std::pow(h,4);
+    return std::max(0.0, std::pow(h-r, 2) / volume);
 
 }
+
+float SPH::SpikyCubicKernelGradient(float r, float h) {
+    if(r > h){
+        return 0;
+    }
+    return -(4000 * (float)pow(h-r, 2) / (float)pow(h, 4));
+}
+float SPH::SpikyCubicKernel(float r, float h) {
+    if(r > h){
+        return 0;
+    }
+    float volume = 0.00075 * (float)pow(h, 4);
+    return pow(h-r, 3) / volume;
+}
+
 float SPH::distance(sf::Vector2f a, sf::Vector2f b) {
     return sqrt(pow(a.x - b.x, 2) + pow(a.y - b.y, 2));
 }
@@ -48,7 +71,8 @@ void SPH::updateDensities(Particle *particles) {
         float density = 0;
         for(int j = 0; j <= numParticles; j++){
             float r = distance(particles[i].getPosition(), particles[j].getPosition());
-            density += particles[j].getMass() * Poly6SmoothingKernel(r, kernelRadius);
+//            density += particles[j].getMass() * Poly6SmoothingKernel(r, kernelRadius);
+            density += particles[j].getMass() * SpikyKernel(r, kernelRadius);
         }
         densities[i] = density;
     }
@@ -77,7 +101,8 @@ float SPH::getDensity(int mouseX, int mouseY, Particle *particles) {
     float density = 0;
     for(int j = 0; j <= numParticles; j++){
         float r = distance(sf::Vector2f(mouseX, mouseY), particles[j].getPosition());
-        density += particles[j].getMass() * Poly6SmoothingKernel(r, kernelRadius);
+//        density += particles[j].getMass() * Poly6SmoothingKernel(r, kernelRadius);
+        density += particles[j].getMass() * SpikyKernel(r, kernelRadius);
     }
     return density;
 }
@@ -89,16 +114,19 @@ float SPH::CalculatePressure(float density) {
 sf::Vector2f SPH::CalculatePressureForce(Particle *p, Particle *particles) {
     sf::Vector2f pressureForce(0, 0);
     std::default_random_engine rd;
-    std::uniform_real_distribution<> dist(0, 2 * M_PI);
+    std::uniform_real_distribution<> dist(0, gasConstant);
+    sf::Vector2f dir;
+    float rMag;
+    sf::Vector2f r;
+    float sharedPressure;
     for(int i = 0; i <= numParticles; i++){
         if(i != p->getId()){
 
-            sf::Vector2f r = p->getPosition() - particles[i].getPosition();
-            float rMag = sqrt(pow(r.x, 2) + pow(r.y, 2));
-            float dirX = rMag == 0 ? dist(rd) : r.x / rMag;
-            float dirY = rMag == 0 ? dist(rd) : r.y / rMag;
-            float sharedPressure = CalculateSharedPressure(densities[i], densities[p->getId()]);
-            pressureForce += particles[i].getMass() * (CalculatePressure(densities[i]) + sharedPressure) / (2 * densities[i]) * SpikyKernelGradient(rMag, kernelRadius) * sf::Vector2f(dirX, dirY);
+            r = p->getPosition() - particles[i].getPosition();
+            rMag = sqrt(pow(r.x, 2) + pow(r.y, 2));
+            dir = (rMag != 0)? r / rMag : sf::Vector2f(dist(rd), dist(rd));
+            sharedPressure = CalculateSharedPressure(densities[i], densities[p->getId()]);
+            pressureForce += particles[i].getMass() * (CalculatePressure(densities[i]) + sharedPressure) / (2 * densities[i]) * SpikyKernelGradient(rMag, kernelRadius) * dir;
         }
     }
     return -pressureForce;
