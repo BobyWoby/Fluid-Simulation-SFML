@@ -31,6 +31,7 @@ public:
     sf::Vector2f getVelocity(){ return velocity; }
     sf::Vector2f getPosition(){ return texture.getPosition(); }
     void setVelocity(sf::Vector2f v){ velocity = v; }
+    void setMass(int m){mass = m;}
     void setColor(sf::Color c){ color = c; texture.setFillColor(c);}
     void update();
     void wallCollision(int width, int height);

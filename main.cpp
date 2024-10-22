@@ -19,15 +19,30 @@ void velocityToColor(Particle *p, sf::Vector2f v){
     p->setColor(c);
 }
 
+void resetParticles( int radius, int numParticles, Particle *particles){
+    for(int i = 0; i < numParticles / sqrt(numParticles); i++){
+        for(int j = 0; j <sqrt(numParticles); j++){
+//            std::cout << "Particle " << i << "," << j<< ": " << i * 2 * radius  << "," <<  j * 2 * radius << std::endl;
+            particles[i * (int)sqrt(numParticles) + j] = Particle(i, radius,  i * 2 * radius + radius, j * 2 * radius + radius, 10, 100, sf::Vector2f(0, 0));
+        }
+    }
+    for(int i = 0; i < numParticles - (int)sqrt(numParticles) * (int)sqrt(numParticles); i++){
+        particles[(int)sqrt(numParticles) * (int)sqrt(numParticles) + i] = Particle((int)sqrt(numParticles) * (int)sqrt(numParticles) + i, radius,  i * 2 * radius + 100, ((int)sqrt(numParticles)+1) * 2 * radius + 100, 10, 1, sf::Vector2f(0, 0));
+    }
+
+}
 
 
 int main() {
-    const int numParticles = 400;
+    const int numParticles = 529;
+    const int width = 400, height = 300;
     const int numCols = 20;
     const int radius = 5;
     float kernelRadius = 25;
     const int framerate = 60;
     float gasConstant = 1.5;
+    int mouseInfluence = 5000;
+    float mouseRadius = 50;
 
 
     // particleId, gridIndex
@@ -47,12 +62,12 @@ int main() {
     std::uniform_real_distribution<float> dist1(350, 360);
 //    std::uniform_int_distribution<> dist(0, 800);
 //    std::uniform_int_distribution<> dist1(0, 600);
-    sf::RenderWindow window(sf::VideoMode(800, 600), "Fluid Sim");
-    window.setPosition(sf::Vector2i(sf::VideoMode::getDesktopMode().width / 2 - 400,
-                                    sf::VideoMode::getDesktopMode().height / 2 - 320));
+    sf::RenderWindow window(sf::VideoMode(width, height), "Fluid Sim");
+    window.setPosition(sf::Vector2i(sf::VideoMode::getDesktopMode().width / 2 - width / 2,
+                                    sf::VideoMode::getDesktopMode().height / 2 - height / 2));
 
     sf::Vector2i MousePos;
-    Particle mouse = Particle(-1, 0, (float)MousePos.x, (float)MousePos.y, 1000, 0, sf::Vector2f(0, 0), sf::Color(0,0,0,0));
+    Particle mouse = Particle(-1, 0, (float)MousePos.x, (float)MousePos.y, mouseInfluence, 0, sf::Vector2f(0, 0), sf::Color(0,0,0,0));
 
     sf::CircleShape circle(kernelRadius);
     circle.setOutlineThickness(1);
@@ -62,22 +77,8 @@ int main() {
     float density;
 
     Particle particles[numParticles];
-//    for(int i = 0; i < numParticles; i++){
-//        particles[i] = Particle(i, radius,  dist(gen), dist1(gen), 10, sf::Vector2f(0, gravity));
-//    }
-    for(int i = 0; i < numParticles / sqrt(numParticles); i++){
-        for(int j = 0; j <sqrt(numParticles); j++){
-//            std::cout << "Particle " << i << "," << j<< ": " << i * 2 * radius  << "," <<  j * 2 * radius << std::endl;
-            particles[i * (int)sqrt(numParticles) + j] = Particle(i, radius,  i * 2 * radius + 100, j * 2 * radius + 100, 10, 1, sf::Vector2f(0, 0));
-        }
-    }
-    for(int i = 0; i < numParticles - (int)sqrt(numParticles) * (int)sqrt(numParticles); i++){
-        particles[(int)sqrt(numParticles) * (int)sqrt(numParticles) + i] = Particle((int)sqrt(numParticles) * (int)sqrt(numParticles) + i, radius,  i * 2 * radius + 100, ((int)sqrt(numParticles)+1) * 2 * radius + 100, 10, 1, sf::Vector2f(0, 0));
-    }
-
+    resetParticles(radius, numParticles, particles);
     SPH sph(numParticles, kernelRadius, 1, gasConstant, 1);
-
-    //    Particle particle(5, dist(gen), dist1(gen), 1, sf::Vector2f(0, 9.8));
 
     sf::Clock clock;
     window.setFramerateLimit(framerate);
@@ -95,10 +96,12 @@ int main() {
                 case sf::Event::MouseWheelScrolled:
 //                    gasConstant += e.mouseWheelScroll.delta;
 //                    sph.setGasConstant(gasConstant);
-                    kernelRadius += e.mouseWheelScroll.delta;
-                    sph.setKernelRadius(kernelRadius);
-                    circle.setRadius(kernelRadius);
-                    circle.setOrigin(kernelRadius, kernelRadius);
+                    mouseInfluence += e.mouseWheelScroll.delta;
+                    mouse.setMass(mouseInfluence);
+//                    kernelRadius += e.mouseWheelScroll.delta;
+//                    sph.setKernelRadius(kernelRadius);
+//                    circle.setRadius(kernelRadius);
+//                    circle.setOrigin(kernelRadius, kernelRadius);
                     break;
                 case sf::Event::KeyPressed:
                     switch(e.key.code){
@@ -111,36 +114,18 @@ int main() {
                             }
                             break;
                         case sf::Keyboard::R:
-//                            for(int i = 0; i < numParticles / numCols; i++){
-//                                for(int j = 0; j < numCols; j++){
-//                                    particles[i * numCols + j] = Particle(i * numCols + j, radius,  (float )dist(gen), (float)dist1(gen), 10, sf::Vector2f(0, gravity));
-//                                }
-//                            }
-//                            for(int i = 0; i < numParticles; i++){
-//                                    particles[i] = Particle(i, radius,  (float )dist(gen), (float)dist1(gen), 10, sf::Vector2f(0, gravity));
-//                            }
-                            for(int i = 0; i < numParticles / sqrt(numParticles); i++){
-                                for(int j = 0; j <sqrt(numParticles); j++){
-                                    particles[i * (int)sqrt(numParticles) + j] = Particle(i, radius,  i * 2 * radius + 100, j * 2 * radius + 100, 10, 1, sf::Vector2f(0, 0));
-                                }
-                            }
-                            for(int i = 0; i < numParticles - (int)sqrt(numParticles) * (int)sqrt(numParticles); i++){
-                                particles[(int)sqrt(numParticles) * (int)sqrt(numParticles) + i] = Particle((int)sqrt(numParticles) * (int)sqrt(numParticles) + i, radius,  i * 2 * radius + 100, ((int)sqrt(numParticles)+1) * 2 * radius + 100, 10, 1, sf::Vector2f(0, 0));
-                            }
+                            resetParticles(radius, numParticles, particles);
                             break;
+                        case sf::Keyboard::Up:
+                            gasConstant += 0.1;
+                            break;
+                        case sf::Keyboard::Down:
+                            gasConstant -= 0.1;
+                            break;
+
                         default:
                             break;
                     }
-                    break;
-                case sf::Event::MouseButtonPressed:
-                    if(e.mouseButton.button == sf::Mouse::Left){
-                        // apply a pressure towards the mouse
-                        mouseSwitch = 1;
-                    }
-                    else if (e.mouseButton.button == sf::Mouse::Right){
-                        mouseSwitch = -1;
-                    }
-
                     break;
                 default:
                     break;
@@ -153,22 +138,26 @@ int main() {
         MousePos = sf::Mouse::getPosition(window);
         circle.setPosition(MousePos.x, MousePos.y);
         density = sph.getDensity(MousePos.x, MousePos.y, particles);
-        str.setString("Density at Mouse: " + std::to_string(density) + "\nPressure Scaler: " + std::to_string(gasConstant));
+//        str.setString("Density at Mouse: " + std::to_string(density) + "\nPressure Scaler: " + std::to_string(gasConstant));
+        str.setString("Density at Mouse: " + std::to_string(density) + "\nMouse Influence: " + std::to_string(mouseInfluence));
         sph.updateDensities(particles);
         mouse.setPosition(MousePos.x, MousePos.y);
+        if(sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
+            mouseSwitch = -1;
+        else if(sf::Mouse::isButtonPressed(sf::Mouse::Button::Right))
+            mouseSwitch = 1;
+        else mouseSwitch = 0;
 
         for(auto & particle : particles){
 //            std::cout << "theres a particle" << std::endl;
             //calculate pressure and add the acceleration to the velocity
             sf::Vector2f pressureForce = sph.CalculatePressureForce(&particle, particles);
             sf::Vector2f viscosityForce = sph.CalculateViscosityForce(&particle, particles);
-            mousePressure = sph.CalculateParticlePressure(particle, mouse);
+            mousePressure = sph.CalculateParticlePressure(particle, mouse, mouseRadius) * mouseSwitch;
             if(sph.getDensity()[particle.getId()]){
                 particle.setVelocity(particle.getVelocity() +  (( pressureForce) / ((sph.getDensity()[particle.getId()]) * framerate)) + (viscosityForce / (sph.getDensity()[particle.getId()] * framerate)));
             }
             particle.setVelocity(particle.getVelocity() + sf::Vector2f(mousePressure.x / framerate, mousePressure.y / framerate));
-//
-//            particle.setVelocity(particle.getVelocity() + sf::Vector2f(0, gravity / framerate ));
 
             velocityToColor(&particle, particle.getVelocity());
             particle.update();
@@ -176,9 +165,9 @@ int main() {
         }
         t = clock.restart();
         window.draw(str);
-        window.draw(circle);
+//        window.draw(circle);
         window.display();
-//        mouseSwitch = 0;
+        mouseSwitch = 0;
     }
     return 0;
 }

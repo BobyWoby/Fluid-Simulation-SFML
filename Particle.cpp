@@ -49,7 +49,7 @@ Particle::Particle() {
 }
 
 void Particle::update() {
-    wallCollision(800, 600);
+    wallCollision(260, 260);
     position += velocity;
     texture.setPosition(position.x, position.y);
 }

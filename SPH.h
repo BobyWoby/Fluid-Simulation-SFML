@@ -28,7 +28,7 @@ public:
     float CalculateProperty(float (*kernel)(float, float), Particle *p, Particle *particles, float *particleProperties);
     sf::Vector2f CalculatePropertyGradient(float (*kernel)(float, float), Particle *p, Particle *particles, float *particleProperties);
 
-    sf::Vector2f CalculateParticlePressure(Particle &particle, Particle &actingParticle);
+    sf::Vector2f CalculateParticlePressure(Particle &particle, Particle &actingParticle, float kR);
     sf::Vector2f CalculateViscosityForce(Particle *p, Particle *particles);
 
 private:
